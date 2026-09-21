@@ -1,0 +1,24 @@
+{
+  "name": "taka-tracker",
+  "version": "1.0.0",
+  "description": "A modern, responsive personal monthly expense tracking web application featuring multi-currency (BDT ৳), multi-language support (English & Bengali), and smart daily budget calculations.",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 8080"
+  },
+  "dependencies": {
+    "chart.js": "^4.4.0"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  },
+  "keywords": [
+    "expense-tracker",
+    "budget",
+    "bdt",
+    "finance",
+    "dashboard"
+  ],
+  "author": "Mahfuz",
+  "license": "MIT"
+}

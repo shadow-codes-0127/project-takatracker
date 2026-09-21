@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TakaTracker — Personal Expense Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <!-- Setup Modal / First Launch Screen -->
+<!-- Setup Modal / First Launch Screen -->
+    <div id="setup-modal" class="modal-overlay hidden">
+        <div class="modal-card setup-modal-card">
+            <button id="close-setup-modal" class="modal-close-btn"><i class="fa-solid fa-xmark"></i></button>
+            <h2 id="setup-title">Welcome to TakaTracker ৳</h2>
+            <p id="setup-desc">Please set up your monthly budget and initial expenses to get started.</p>
+            
+            <div class="form-group">
+                <label>Total Monthly Money Available (৳)</label>
+                <input type="number" id="setup-amount-input" value="0" min="0" step="100">
+            </div>
+            <div class="form-group">
+                <label>Hostel Rent (৳)</label>
+                <input type="number" id="setup-hostel-input" value="0" min="0" step="100">
+            </div>
+            <div class="form-group">
+                <label>Wi-Fi + Electricity (৳)</label>
+                <input type="number" id="setup-wifi-input" value="0" min="0" step="100">
+            </div>
+            <div class="form-group">
+                <label>Daily Food Budget Limit (৳)</label>
+                <input type="number" id="setup-food-input" value="0" min="0" step="10">
+            </div>
+
+            <button id="setup-save-btn" class="btn-primary">Start Tracking</button>
+        </div>
+    </div>
+
+    <!-- Main App Layout -->
+    <div class="app-container">
+        
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-wallet brand-icon"></i>
+                <h2>Taka<span class="highlight">Tracker</span></h2>
+            </div>
+            <nav class="nav-menu">
+                <a href="#dashboard" class="nav-item active" data-target="dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> <span data-i18n="nav_dashboard">Dashboard</span>
+                </a>
+                <a href="#add-expense" class="nav-item" data-target="add-expense">
+                    <i class="fa-solid fa-circle-plus"></i> <span data-i18n="nav_add">Add Expense</span>
+                </a>
+                <a href="#expenses" class="nav-item" data-target="expenses">
+                    <i class="fa-solid fa-list-check"></i> <span data-i18n="nav_expenses">Expenses</span>
+                </a>
+                <a href="#calendar" class="nav-item" data-target="calendar">
+                    <i class="fa-solid fa-calendar-days"></i> <span data-i18n="nav_calendar">Calendar</span>
+                </a>
+                <a href="#reports" class="nav-item" data-target="reports">
+                    <i class="fa-solid fa-chart-line"></i> <span data-i18n="nav_reports">Reports</span>
+                </a>
+                <a href="#budget" class="nav-item" data-target="budget">
+                    <i class="fa-solid fa-coins"></i> <span data-i18n="nav_budget">Budget</span>
+                </a>
+                <a href="#settings" class="nav-item" data-target="settings">
+                    <i class="fa-solid fa-gear"></i> <span data-i18n="nav_settings">Settings</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="theme-switch-wrapper">
+                    <i class="fa-solid fa-moon"></i>
+                    <label class="switch">
+                        <input type="checkbox" id="theme-toggle-checkbox">
+                        <span class="slider round"></span>
+                    </label>
+                    <i class="fa-solid fa-sun"></i>
+                </div>
+                <div class="lang-switch-wrapper">
+                    <button id="lang-toggle-btn" class="lang-btn">বাংলা / EN</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <div class="brand">
+                <h2>Taka<span>Tracker</span></h2>
+            </div>
+            <button id="mobile-menu-btn" class="mobile-menu-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- Month Bar Top -->
+            <div class="month-selector-bar">
+                <button id="prev-month-btn" class="btn-icon"><i class="fa-solid fa-chevron-left"></i></button>
+                <h2 id="current-month-display">September 2026</h2>
+                <button id="next-month-btn" class="btn-icon"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+            <!-- Warning Banner -->
+            <div id="warning-banner" class="warning-banner hidden">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span id="warning-text"></span>
+            </div>
+
+            <!-- VIEW 1: DASHBOARD -->
+            <section id="view-dashboard" class="view-section active">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon blue"><i class="fa-solid fa-wallet"></i></div>
+                        <div class="metric-info">
+                            <span data-i18n="lbl_monthly_money">Monthly Money</span>
+                            <h3 id="dash-monthly-money">৳10,000</h3>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon orange"><i class="fa-solid fa-arrow-trend-down"></i></div>
+                        <div class="metric-info">
+                            <span data-i18n="lbl_spent">Spent</span>
+                            <h3 id="dash-spent">৳0</h3>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon green"><i class="fa-solid fa-piggy-bank"></i></div>
+                        <div class="metric-info">
+                            <span data-i18n="lbl_remaining">Remaining</span>
+                            <h3 id="dash-remaining">৳10,000</h3>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon purple"><i class="fa-solid fa-percent"></i></div>
+                        <div class="metric-info">
+                            <span data-i18n="lbl_budget_used">Budget Used</span>
+                            <h3 id="dash-budget-used">0%</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Budget Breakdown & Progress -->
+                <div class="dashboard-row">
+                    <div class="card flex-1">
+                        <h3 data-i18n="title_monthly_overview">Monthly Budget Overview</h3>
+                        <div class="progress-container">
+                            <div class="progress-bar-label">
+                                <span id="progress-text-spent">Spent: ৳0</span>
+                                <span id="progress-text-avail">Available: ৳10,000</span>
+                            </div>
+                            <div class="progress-track">
+                                <div id="main-progress-fill" class="progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+                        <div class="budget-breakdown-details">
+                            <div class="detail-row">
+                                <span data-i18n="lbl_planned_basic">Planned Basic Expenses:</span>
+                                <strong id="dash-planned-basic">৳6,000</strong>
+                            </div>
+                            <div class="detail-row">
+                                <span data-i18n="lbl_additional_allowance">Additional Spending Allowance:</span>
+                                <strong id="dash-additional-allowance">৳4,000</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card flex-1">
+                        <h3 data-i18n="title_smart_spending">Smart Daily Spending</h3>
+                        <div class="safe-spending-box">
+                            <div class="safe-spending-value" id="dash-safe-daily">৳400<span class="unit">/day</span></div>
+                            <p data-i18n="desc_safe_spending">Recommended daily spending based on your remaining money and days left in the month.</p>
+                            <div class="days-left-badge">
+                                <i class="fa-solid fa-hourglass-half"></i> <span id="dash-days-remaining">10</span> <span data-i18n="lbl_days_left">days remaining</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Overview & Fixed Expenses -->
+                <div class="dashboard-row">
+                    <div class="card flex-1">
+                        <h3 data-i18n="title_todays_expenses">Today's Expenses</h3>
+                        <div id="today-expense-list" class="mini-list">
+                            <p class="text-muted" data-i18n="msg_no_today">No expenses recorded for today.</p>
+                        </div>
+                        <div class="today-total-row">
+                            <span data-i18n="lbl_total_today">Total Today:</span>
+                            <strong id="dash-today-total">৳0</strong>
+                        </div>
+                        <div class="food-tracker-box">
+                            <div class="food-header">
+                                <span><i class="fa-solid fa-utensils"></i> <span data-i18n="lbl_todays_food">Today's Food</span></span>
+                                <strong id="dash-today-food-count">৳0 / ৳100</strong>
+                            </div>
+                            <div class="progress-track small">
+                                <div id="food-progress-fill" class="progress-fill food" style="width: 0%;"></div>
+                            </div>
+                            <div class="food-footer" id="dash-food-status">Remaining: ৳100</div>
+                        </div>
+                    </div>
+
+                    <div class="card flex-1">
+                        <h3 data-i18n="title_fixed_expenses">Fixed Expenses</h3>
+                        <div class="fixed-expense-items">
+                            <div class="fixed-item">
+                                <div class="fixed-info">
+                                    <span>🏠 <span data-i18n="lbl_hostel">Hostel Rent</span></span>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                                        <span>৳</span><input type="number" id="fixed-hostel-input" min="0" style="width: 90px; padding: 0.25rem 0.5rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;">
+                                        <span id="fixed-hostel-badge" class="badge unpaid">Unpaid</span>
+                                    </div>
+                                </div>
+                                <button id="toggle-hostel-btn" class="btn-sm btn-outline">Mark Paid</button>
+                            </div>
+                            <div class="fixed-item">
+                                <div class="fixed-info">
+                                    <span>📶 <span data-i18n="lbl_wifi_elec">Wi-Fi + Electricity</span></span>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem;">
+                                        <span>৳</span><input type="number" id="fixed-wifi-input" min="0" style="width: 90px; padding: 0.25rem 0.5rem; background: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px;">
+                                        <span id="fixed-wifi-badge" class="badge unpaid">Unpaid</span>
+                                    </div>
+                                </div>
+                                <button id="toggle-wifi-btn" class="btn-sm btn-outline">Mark Paid</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: ADD EXPENSE -->
+            <section id="view-add-expense" class="view-section">
+                <div class="card max-w-lg mx-auto">
+                    <h3 data-i18n="title_add_expense">Add New Expense</h3>
+                    <form id="expense-form">
+                        <input type="hidden" id="edit-expense-id">
+                        <div class="form-group">
+                            <label data-i18n="lbl_date">Date</label>
+                            <input type="date" id="expense-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_category">Category</label>
+                            <select id="expense-category" required>
+                                <option value="Food">🍛 Food</option>
+                                <option value="Hostel Rent">🏠 Hostel Rent</option>
+                                <option value="Electricity">⚡ Electricity</option>
+                                <option value="Wi-Fi">📶 Wi-Fi</option>
+                                <option value="Transport">🚕 Transport</option>
+                                <option value="Education">📚 Education</option>
+                                <option value="Shopping">🛍 Shopping</option>
+                                <option value="Health">💊 Health</option>
+                                <option value="Entertainment">🎮 Entertainment</option>
+                                <option value="Other">📦 Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_amount">Amount (৳)</label>
+                            <input type="number" id="expense-amount" placeholder="e.g. 85" min="1" step="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_description">Description / Note</label>
+                            <input type="text" id="expense-desc" placeholder="e.g. Lunch with friends">
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" id="expense-submit-btn" class="btn-primary" data-i18n="btn_save_expense">Save Expense</button>
+                            <button type="button" id="expense-cancel-btn" class="btn-secondary hidden" data-i18n="btn_cancel">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- VIEW 3: EXPENSES LIST -->
+            <section id="view-expenses" class="view-section">
+                <div class="card">
+                    <div class="table-header-controls">
+                        <h3 data-i18n="title_expense_history">Expense History</h3>
+                        <div class="filter-controls">
+                            <input type="text" id="search-input" placeholder="Search expenses..." data-i18n-placeholder="search_placeholder">
+                            <select id="filter-category">
+                                <option value="" data-i18n="opt_all_categories">All Categories</option>
+                                <option value="Food">Food</option>
+                                <option value="Hostel Rent">Hostel Rent</option>
+                                <option value="Electricity">Electricity</option>
+                                <option value="Wi-Fi">Wi-Fi</option>
+                                <option value="Transport">Transport</option>
+                                <option value="Education">Education</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Health">Health</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="th_date">Date</th>
+                                    <th data-i18n="th_category">Category</th>
+                                    <th data-i18n="th_description">Description</th>
+                                    <th data-i18n="th_amount">Amount</th>
+                                    <th data-i18n="th_actions">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expense-table-body">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 4: CALENDAR -->
+            <section id="view-calendar" class="view-section">
+                <div class="card">
+                    <div class="calendar-header-bar">
+                        <h3 id="calendar-month-title">September 2026</h3>
+                        <div class="calendar-legend">
+                            <span class="legend-dot green"></span> Within Budget
+                            <span class="legend-dot yellow"></span> Close to Limit
+                            <span class="legend-dot red"></span> Over Budget
+                        </div>
+                    </div>
+                    <div class="calendar-grid-wrapper">
+                        <div class="calendar-weekdays">
+                            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+                        </div>
+                        <div id="calendar-days-grid" class="calendar-days-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+                <!-- Day detail modal -->
+                <div id="day-detail-modal" class="modal-overlay hidden">
+                    <div class="modal-card">
+                        <h3 id="day-modal-title">Expenses on Date</h3>
+                        <div id="day-modal-content" class="day-modal-list"></div>
+                        <button id="close-day-modal" class="btn-secondary mt-4">Close</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 5: REPORTS -->
+            <section id="view-reports" class="view-section">
+                <div class="reports-grid">
+                    <div class="card">
+                        <h3 data-i18n="title_category_distribution">Category Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="category-chart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3 data-i18n="title_daily_trend">Daily Spending Trend</h3>
+                        <div class="chart-container">
+                            <canvas id="daily-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 6: BUDGET -->
+            <section id="view-budget" class="view-section">
+                <div class="card max-w-lg mx-auto">
+                    <h3 data-i18n="title_budget_summary">Monthly Budget & Planned Expenses</h3>
+                    <div class="budget-summary-form">
+                        <div class="form-group">
+                            <label data-i18n="lbl_total_avail_money">Total Monthly Money Available (৳)</label>
+                            <input type="number" id="budget-total-money" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_hostel_rent">Hostel Rent (৳)</label>
+                            <input type="number" id="budget-hostel" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_wifi_elec_budget">Wi-Fi + Electricity (৳)</label>
+                            <input type="number" id="budget-wifi" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_daily_food_limit">Daily Food Budget Limit (৳)</label>
+                            <input type="number" id="budget-daily-food" min="0">
+                        </div>
+                        <button id="save-budget-btn" class="btn-primary" data-i18n="btn_update_budget">Update Budget Settings</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 7: SETTINGS -->
+            <section id="view-settings" class="view-section">
+                <div class="card max-w-lg mx-auto">
+                    <h3 data-i18n="title_app_settings">App Settings & Data Management</h3>
+                    <div class="settings-stack">
+                        <div class="setting-item">
+                            <div>
+                                <h4 data-i18n="title_export_data">Export Data</h4>
+                                <p data-i18n="desc_export_data">Backup all your monthly budgets, fixed expenses, and history as JSON or CSV.</p>
+                            </div>
+                            <div class="btn-group">
+                                <button id="export-json-btn" class="btn-secondary">Export JSON</button>
+                                <button id="export-csv-btn" class="btn-secondary">Export CSV</button>
+                            </div>
+                        </div>
+                        <hr class="divider">
+                        <div class="setting-item">
+                            <div>
+                                <h4 data-i18n="title_import_data">Import Data</h4>
+                                <p data-i18n="desc_import_data">Restore data from a previously exported JSON backup file.</p>
+                            </div>
+                            <input type="file" id="import-file-input" accept=".json" class="hidden">
+                            <button id="import-btn" class="btn-outline">Import JSON</button>
+                        </div>
+                        <hr class="divider">
+                        <div class="setting-item">
+                            <div>
+                                <h4 data-i18n="title_reset_data">Reset Application Data</h4>
+                                <p data-i18n="desc_reset_data">Clear all local storage data and start fresh.</p>
+                            </div>
+                            <button id="reset-app-btn" class="btn-danger">Reset All</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
